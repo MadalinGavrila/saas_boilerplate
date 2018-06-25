@@ -15,6 +15,12 @@
 
             <!-- Right Side Of Navbar -->
             <ul class="navbar-nav ml-auto">
+                @notsubscribed
+                    <li>
+                        <a class="nav-link" href="{{route('plans.index')}}">Plans</a>
+                    </li>
+                @endnotsubscribed
+
                 <!-- Authentication Links -->
                 @guest
                 <li class="nav-item">
@@ -24,6 +30,16 @@
                     <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
                 </li>
                 @else
+                    @impersonating
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('impersonate.destroy').submit();">Stop Impersonating</a>
+
+                            <form action="{{route('admin.impersonate.destroy')}}" method="POST" id="impersonate.destroy">
+                                {{csrf_field()}}
+                                {{method_field('DELETE')}}
+                            </form>
+                        </li>
+                    @endimpersonating
                     <li class="nav-item dropdown">
                         <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                             {{ Auth::user()->name }} <span class="caret"></span>

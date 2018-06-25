@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -25,7 +26,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/';
+    protected $redirectTo = '/dashboard';
 
     /**
      * Create a new controller instance.
@@ -35,5 +36,31 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    protected function authenticated(Request $request, $user)
+    {
+        if ($user->hasNotActivated()) {
+            $this->guard()->logout();
+
+            return back()->withError('Your account is not active.');
+        }
+
+        if ($user->twoFactorEnabled()) {
+            return $this->startTwoFactorAuthentication($request, $user);
+        }
+    }
+
+    protected function startTwoFactorAuthentication(Request $request, $user)
+    {
+        session()->put('twofactor', (object) [
+            'user_id' => $user->id,
+            'remember' => $request->has('remember')
+        ]);
+
+        $this->guard()->logout();
+
+        return redirect()->route('login.twofactor.index');
+
     }
 }
